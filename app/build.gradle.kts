@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.room)
 }
 
 android {
@@ -36,6 +37,17 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        // Robolectric needs merged resources for the in-memory Room tests.
+        unitTests.isIncludeAndroidResources = true
+        // Robolectric's FileDescriptor shim reflects into a JDK-internal package (Java 17+).
+        unitTests.all { it.jvmArgs("--add-exports=java.base/jdk.internal.access=ALL-UNNAMED") }
+    }
+}
+
+room {
+    // Exported schemas are committed so future migrations can be written and tested.
+    schemaDirectory("$projectDir/schemas")
 }
 
 dependencies {
@@ -54,9 +66,15 @@ dependencies {
     // Declared explicitly: Retrofit 3 still pulls OkHttp 4.12, this resolves it to 5.x.
     implementation(libs.okhttp)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.okhttp.mockwebserver)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.androidx.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)
