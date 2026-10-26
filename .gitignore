@@ -1,0 +1,15 @@
+*.iml
+.gradle
+/local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Private: interview prep + company brief (not for the public repo)
+CLAUDE.md
+docs/plan.md
+docs/challenge.pdf
