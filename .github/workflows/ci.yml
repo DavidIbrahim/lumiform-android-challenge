@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same branch cancels the run that's still going.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v5
+
+      # Gradle's daemon toolchain is JDK 21 (gradle/gradle-daemon-jvm.properties).
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      # compileSdk 37 isn't preinstalled on the runner image yet.
+      - name: Install Android SDK platform 37
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" > /dev/null
+
+      # Caches dependencies and the build cache between runs; checks the wrapper jar is genuine.
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Lint, unit tests, debug build
+        run: ./gradlew lintDebug testDebugUnitTest assembleDebug
+
+      - name: Upload test and lint reports
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: reports
+          path: |
+            app/build/reports/
+            app/build/test-results/
+          retention-days: 7
