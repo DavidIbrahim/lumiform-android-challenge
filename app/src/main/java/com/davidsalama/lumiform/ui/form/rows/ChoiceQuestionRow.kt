@@ -2,7 +2,6 @@ package com.davidsalama.lumiform.ui.form.rows
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -43,7 +42,7 @@ fun ChoiceQuestionRow(
 ) {
     val responseSet = row.question.responseSet
     HierarchyRowFrame(depth = row.depth, modifier = modifier) {
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        QuestionCard {
             TitleWithId(
                 text = row.question.content,
                 id = row.id,

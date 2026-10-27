@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -15,12 +15,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,6 +39,8 @@ import com.davidsalama.lumiform.domain.model.TextQuestion
 import com.davidsalama.lumiform.ui.form.rows.FormRowItem
 import com.davidsalama.lumiform.ui.theme.HierarchyTypography
 import com.davidsalama.lumiform.ui.theme.LumiformTheme
+import java.time.Instant
+import java.time.ZoneId
 
 @Composable
 fun FormRoute(
@@ -59,8 +64,16 @@ fun FormScreen(
     onResponseTapped: (ChoiceQuestion, Long) -> Unit,
     onImageClick: (Long) -> Unit,
 ) {
+    // Slides away while reading down the form and comes back on the first scroll up.
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.app_name)) }) },
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            TopAppBar(
+                title = { FormTitle(isRefreshing = state.isRefreshing, lastSyncedAt = state.lastSyncedAt) },
+                scrollBehavior = scrollBehavior,
+            )
+        },
     ) { innerPadding ->
         val contentModifier = Modifier
             .fillMaxSize()
@@ -98,6 +111,32 @@ fun FormScreen(
     }
 }
 
+/** The app name, with when the data was last synced, so freshness is always visible. */
+@Composable
+private fun FormTitle(isRefreshing: Boolean, lastSyncedAt: Instant?) {
+    val locale = LocalConfiguration.current.locales[0]
+    val subtitle = when {
+        isRefreshing -> stringResource(R.string.syncing)
+        lastSyncedAt != null -> {
+            val time = remember(lastSyncedAt, locale) {
+                formatSyncTime(lastSyncedAt, Instant.now(), ZoneId.systemDefault(), locale)
+            }
+            stringResource(R.string.synced_at, time)
+        }
+        else -> null
+    }
+    Column {
+        Text(stringResource(R.string.app_name))
+        if (subtitle != null) {
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
 @Composable
 private fun FormList(
     rows: List<FormRow>,
@@ -108,16 +147,17 @@ private fun FormList(
     val hierarchy = remember(typography) { HierarchyTypography(typography) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 24.dp),
+        contentPadding = PaddingValues(top = 4.dp, bottom = 32.dp),
     ) {
-        items(
+        itemsIndexed(
             items = rows,
-            key = { it.id },
+            key = { _, row -> row.id },
             // Lets Compose reuse a scrolled-off row only for a row of the same kind.
-            contentType = { it::class },
-        ) { row ->
+            contentType = { _, row -> row::class },
+        ) { index, row ->
             FormRowItem(
                 row = row,
+                isFirst = index == 0,
                 typography = hierarchy,
                 onResponseTapped = onResponseTapped,
                 onImageClick = onImageClick,

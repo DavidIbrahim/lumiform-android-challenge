@@ -65,8 +65,9 @@ class AppNavigationTest {
 
         composeRule.onNodeWithContentDescription("Back").performClick()
 
+        // Back on the form, still scrolled to the image (the top bar has scrolled away with it).
         composeRule.onNodeWithContentDescription("Back").assertDoesNotExist()
-        composeRule.onNodeWithText("Lumiform Forms").assertIsDisplayed()
+        composeRule.onNodeWithText("Chapter 1 Image").assertIsDisplayed()
     }
 
     @Test

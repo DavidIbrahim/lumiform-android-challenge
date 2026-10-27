@@ -12,6 +12,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.time.Instant
 
 /** The screen's states, from the user's point of view (Robolectric). */
 @RunWith(AndroidJUnit4::class)
@@ -55,6 +56,18 @@ class FormScreenTest {
         show(FormUiState(rows = flattenForm(sampleFormTree)))
 
         composeRule.onNodeWithText("Retry").assertDoesNotExist()
+    }
+
+    @Test
+    fun `top bar shows when the data was last synced`() {
+        show(FormUiState(rows = flattenForm(sampleFormTree), lastSyncedAt = Instant.now()))
+        composeRule.onNodeWithText("Synced", substring = true).assertExists()
+    }
+
+    @Test
+    fun `top bar says syncing while a refresh runs`() {
+        show(FormUiState(rows = flattenForm(sampleFormTree), isRefreshing = true, lastSyncedAt = Instant.now()))
+        composeRule.onNodeWithText("Syncing…").assertExists()
     }
 
     @Test

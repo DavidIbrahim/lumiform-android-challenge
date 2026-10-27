@@ -23,13 +23,15 @@ import com.davidsalama.lumiform.ui.theme.HierarchyTypography
 @Composable
 fun FormRowItem(
     row: FormRow,
+    /** The top of the list: no gap above it, since nothing comes before. */
+    isFirst: Boolean,
     typography: HierarchyTypography,
     onResponseTapped: (ChoiceQuestion, Long) -> Unit,
     onImageClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when (row) {
-        is PageRow -> PageHeader(row, typography, modifier)
+        is PageRow -> PageHeader(row, isFirst, typography, modifier)
         is SectionRow -> SectionHeader(row, typography, modifier)
         is TextRow -> TextQuestionRow(row, typography, modifier)
         is ImageRow -> ImageQuestionRow(row, typography, onImageClick, modifier)
@@ -39,8 +41,8 @@ fun FormRowItem(
 }
 
 @Composable
-private fun PageHeader(row: PageRow, typography: HierarchyTypography, modifier: Modifier) {
-    HierarchyRowFrame(depth = row.depth, modifier = modifier, top = 24.dp, bottom = 8.dp) {
+private fun PageHeader(row: PageRow, isFirst: Boolean, typography: HierarchyTypography, modifier: Modifier) {
+    HierarchyRowFrame(depth = row.depth, modifier = modifier, top = if (isFirst) 12.dp else 32.dp, bottom = 8.dp) {
         TitleWithId(
             text = row.title,
             id = row.id,
@@ -53,7 +55,7 @@ private fun PageHeader(row: PageRow, typography: HierarchyTypography, modifier: 
 
 @Composable
 private fun SectionHeader(row: SectionRow, typography: HierarchyTypography, modifier: Modifier) {
-    HierarchyRowFrame(depth = row.depth, modifier = modifier, top = 14.dp, bottom = 4.dp) {
+    HierarchyRowFrame(depth = row.depth, modifier = modifier, top = 16.dp, bottom = 6.dp) {
         TitleWithId(
             text = row.title,
             id = row.id,
@@ -72,22 +74,26 @@ private fun TextQuestionRow(row: TextRow, typography: HierarchyTypography, modif
 @Composable
 private fun QuestionText(depth: Int, text: String, id: Long, typography: HierarchyTypography, modifier: Modifier) {
     HierarchyRowFrame(depth = depth, modifier = modifier) {
-        TitleWithId(
-            text = text,
-            id = id,
-            style = typography.question,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
+        QuestionCard {
+            TitleWithId(
+                text = text,
+                id = id,
+                style = typography.question,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
     }
 }
 
 @Composable
 private fun UnsupportedRow(row: UnknownRow, typography: HierarchyTypography, modifier: Modifier) {
     HierarchyRowFrame(depth = row.depth, modifier = modifier) {
-        Text(
-            text = stringResource(R.string.unsupported_item, row.rawType),
-            style = typography.question.copy(fontStyle = FontStyle.Italic),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        QuestionCard {
+            Text(
+                text = stringResource(R.string.unsupported_item, row.rawType),
+                style = typography.question.copy(fontStyle = FontStyle.Italic),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }

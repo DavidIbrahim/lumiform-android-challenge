@@ -24,6 +24,8 @@
     <string name="error_invalid_data">The form data couldn’t be read.</string>
     <string name="error_unknown">Something went wrong.</string>
 
+    <string name="syncing">Syncing…</string>
+    <string name="synced_at">Synced %1$s</string>
     <string name="banner_no_connection">You’re offline</string>
     <string name="banner_timeout">Connection timed out</string>
     <string name="banner_server">Server error (%1$d)</string>

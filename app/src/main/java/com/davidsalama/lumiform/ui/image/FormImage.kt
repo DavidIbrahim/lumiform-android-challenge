@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
@@ -29,6 +30,8 @@ fun FormImage(
     contentScale: ContentScale = ContentScale.Fit,
     /** Space between the canvas edge and the image, so logos don't touch the frame. */
     contentPadding: Dp = 0.dp,
+    /** The loaded image's own size, for callers that size the canvas to the image's shape. */
+    onImageSize: (Size) -> Unit = {},
 ) {
     AsyncImage(
         model = url,
@@ -36,6 +39,7 @@ fun FormImage(
         contentScale = contentScale,
         placeholder = ColorPainter(MaterialTheme.colorScheme.surfaceContainer),
         error = painterResource(R.drawable.ic_broken_image),
+        onSuccess = { success -> onImageSize(success.painter.intrinsicSize) },
         modifier = modifier
             .background(ImageCanvas)
             .padding(contentPadding),

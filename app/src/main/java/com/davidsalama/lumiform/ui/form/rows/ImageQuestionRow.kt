@@ -2,8 +2,6 @@ package com.davidsalama.lumiform.ui.form.rows
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -30,15 +28,12 @@ fun ImageQuestionRow(
     modifier: Modifier = Modifier,
 ) {
     HierarchyRowFrame(depth = row.depth, modifier = modifier) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-            // One clickable unit: the screen reader reads the title once, with an "open" action.
-            modifier = Modifier
-                .clip(ThumbnailShape)
-                .clickable(
-                    onClickLabel = stringResource(R.string.open_image),
-                    role = Role.Button,
-                ) { onImageClick(row.id) },
+        // One clickable unit: the screen reader reads the title once, with an "open" action.
+        QuestionCard(
+            Modifier.clickable(
+                onClickLabel = stringResource(R.string.open_image),
+                role = Role.Button,
+            ) { onImageClick(row.id) },
         ) {
             FormImage(
                 url = row.imageUrl,
@@ -54,7 +49,7 @@ fun ImageQuestionRow(
                 text = row.title,
                 id = row.id,
                 style = typography.question,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
     }

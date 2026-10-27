@@ -17,6 +17,8 @@ private val DarkColorScheme = darkColorScheme(
     onSecondaryContainer = OnSectionContainerDark,
     background = SurfaceDark,
     surface = SurfaceDark,
+    // Question cards.
+    surfaceContainerLow = SurfaceContainerLowDark,
     surfaceContainer = SurfaceContainerDark,
 )
 
@@ -29,6 +31,7 @@ private val LightColorScheme = lightColorScheme(
     onSecondaryContainer = OnSectionContainerLight,
     background = SurfaceLight,
     surface = SurfaceLight,
+    surfaceContainerLow = SurfaceContainerLowLight,
     surfaceContainer = SurfaceContainerLight,
 )
 
