@@ -57,6 +57,9 @@ private fun FormNode.toEntity(parentId: Long?, position: Int): FormNodeEntity = 
     is UnknownNode -> FormNodeEntity(id, parentId, position, NodeType.UNKNOWN, rawType = rawType)
 }
 
+fun FormNodeEntity.toImageQuestionOrNull(): ImageQuestion? =
+    if (type == NodeType.IMAGE) ImageQuestion(id, imageUrl.orEmpty(), title.orEmpty()) else null
+
 /**
  * Rebuilds the tree from all rows in O(n): one pass groups rows by parent, then each node
  * looks up its children in that map. No recursive SQL, no query per level.

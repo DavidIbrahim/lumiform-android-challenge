@@ -2,6 +2,7 @@ package com.davidsalama.lumiform.domain
 
 import com.davidsalama.lumiform.domain.model.ChoiceQuestion
 import com.davidsalama.lumiform.domain.model.FormNode
+import com.davidsalama.lumiform.domain.model.ImageQuestion
 import kotlinx.coroutines.flow.Flow
 import java.time.Instant
 
@@ -15,6 +16,9 @@ interface FormRepository {
 
     /** The cached form; empty until a first refresh succeeds. */
     fun observeForm(): Flow<List<FormNode>>
+
+    /** One cached image question, or null if there's no image with that id (e.g. removed by a refresh). */
+    fun observeImage(id: Long): Flow<ImageQuestion?>
 
     /** When the cached form was last fetched, or null if it never was. */
     fun observeLastSyncedAt(): Flow<Instant?>

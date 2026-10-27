@@ -25,14 +25,15 @@ fun FormRowItem(
     row: FormRow,
     typography: HierarchyTypography,
     onResponseTapped: (ChoiceQuestion, Long) -> Unit,
+    onImageClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when (row) {
         is PageRow -> PageHeader(row, typography, modifier)
         is SectionRow -> SectionHeader(row, typography, modifier)
         is TextRow -> TextQuestionRow(row, typography, modifier)
-        // Placeholders until the image and choice rows land in their own commits.
-        is ImageRow -> QuestionText(row.depth, row.title, row.id, typography, modifier)
+        is ImageRow -> ImageQuestionRow(row, typography, onImageClick, modifier)
+        // Placeholder until the choice row lands in its own commit.
         is ChoiceRow -> QuestionText(row.depth, row.question.content, row.id, typography, modifier)
         is UnknownRow -> UnsupportedRow(row, typography, modifier)
     }

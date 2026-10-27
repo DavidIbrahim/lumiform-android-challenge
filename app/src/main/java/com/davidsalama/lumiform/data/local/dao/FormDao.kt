@@ -19,6 +19,9 @@ interface FormDao {
     @Query("SELECT * FROM form_node")
     fun observeForm(): Flow<List<FormNodeWithResponses>>
 
+    @Query("SELECT * FROM form_node WHERE id = :id")
+    fun observeNode(id: Long): Flow<FormNodeEntity?>
+
     @Query("SELECT last_synced_at FROM sync_metadata WHERE `key` = :key")
     fun observeLastSyncedAt(key: String = SyncMetadataEntity.FORM_KEY): Flow<Long?>
 

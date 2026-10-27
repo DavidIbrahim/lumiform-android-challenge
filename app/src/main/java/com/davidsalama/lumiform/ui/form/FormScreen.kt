@@ -38,12 +38,16 @@ import com.davidsalama.lumiform.ui.theme.HierarchyTypography
 import com.davidsalama.lumiform.ui.theme.LumiformTheme
 
 @Composable
-fun FormRoute(viewModel: FormViewModel = hiltViewModel()) {
+fun FormRoute(
+    onImageClick: (Long) -> Unit,
+    viewModel: FormViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     FormScreen(
         state = state,
         onRefresh = viewModel::refresh,
         onResponseTapped = viewModel::onResponseTapped,
+        onImageClick = onImageClick,
     )
 }
 
@@ -53,6 +57,7 @@ fun FormScreen(
     state: FormUiState,
     onRefresh: () -> Unit,
     onResponseTapped: (ChoiceQuestion, Long) -> Unit,
+    onImageClick: (Long) -> Unit,
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.app_name)) }) },
@@ -77,7 +82,7 @@ fun FormScreen(
                 if (state.rows.isEmpty()) {
                     EmptyContent(Modifier.fillMaxSize())
                 } else {
-                    FormList(state.rows, onResponseTapped)
+                    FormList(state.rows, onResponseTapped, onImageClick)
                 }
             }
         }
@@ -85,7 +90,11 @@ fun FormScreen(
 }
 
 @Composable
-private fun FormList(rows: List<FormRow>, onResponseTapped: (ChoiceQuestion, Long) -> Unit) {
+private fun FormList(
+    rows: List<FormRow>,
+    onResponseTapped: (ChoiceQuestion, Long) -> Unit,
+    onImageClick: (Long) -> Unit,
+) {
     val typography = MaterialTheme.typography
     val hierarchy = remember(typography) { HierarchyTypography(typography) }
     LazyColumn(
@@ -98,7 +107,12 @@ private fun FormList(rows: List<FormRow>, onResponseTapped: (ChoiceQuestion, Lon
             // Lets Compose reuse a scrolled-off row only for a row of the same kind.
             contentType = { it::class },
         ) { row ->
-            FormRowItem(row = row, typography = hierarchy, onResponseTapped = onResponseTapped)
+            FormRowItem(
+                row = row,
+                typography = hierarchy,
+                onResponseTapped = onResponseTapped,
+                onImageClick = onImageClick,
+            )
         }
     }
 }
@@ -154,6 +168,11 @@ private fun FormScreenPreview() {
         ),
     )
     LumiformTheme {
-        FormScreen(FormUiState(rows = flattenForm(form)), onRefresh = {}, onResponseTapped = { _, _ -> })
+        FormScreen(
+            state = FormUiState(rows = flattenForm(form)),
+            onRefresh = {},
+            onResponseTapped = { _, _ -> },
+            onImageClick = {},
+        )
     }
 }

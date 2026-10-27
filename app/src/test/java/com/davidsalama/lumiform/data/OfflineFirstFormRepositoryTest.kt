@@ -8,6 +8,7 @@ import com.davidsalama.lumiform.domain.DataError
 import com.davidsalama.lumiform.domain.RefreshResult
 import com.davidsalama.lumiform.domain.model.ChoiceQuestion
 import com.davidsalama.lumiform.domain.model.FormNode
+import com.davidsalama.lumiform.domain.model.ImageQuestion
 import com.davidsalama.lumiform.domain.model.Page
 import com.davidsalama.lumiform.domain.model.Section
 import com.davidsalama.lumiform.domain.model.TextQuestion
@@ -155,6 +156,19 @@ class OfflineFirstFormRepositoryTest {
             mapOf(13L to setOf(1013L), 14L to setOf(1021L, 1023L)),
             repository.observeSelections().first(),
         )
+    }
+
+    @Test
+    fun `image is looked up by id from the cache`() = runTest {
+        repository.refresh()
+
+        assertEquals(
+            ImageQuestion(9, "https://raw.githubusercontent.com/github/explore/main/topics/ios/ios.png", "Chapter 1 Image"),
+            repository.observeImage(9).first(),
+        )
+        // Id 8 exists but is a text question; 99 doesn't exist.
+        assertEquals(null, repository.observeImage(8).first())
+        assertEquals(null, repository.observeImage(99).first())
     }
 
     @Test

@@ -4,11 +4,13 @@ import com.davidsalama.lumiform.data.local.dao.FormDao
 import com.davidsalama.lumiform.data.local.dao.SelectionDao
 import com.davidsalama.lumiform.data.mapper.toDomainTree
 import com.davidsalama.lumiform.data.mapper.toEntities
+import com.davidsalama.lumiform.data.mapper.toImageQuestionOrNull
 import com.davidsalama.lumiform.data.remote.FormRemoteDataSource
 import com.davidsalama.lumiform.domain.FormRepository
 import com.davidsalama.lumiform.domain.RefreshResult
 import com.davidsalama.lumiform.domain.model.ChoiceQuestion
 import com.davidsalama.lumiform.domain.model.FormNode
+import com.davidsalama.lumiform.domain.model.ImageQuestion
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -32,6 +34,9 @@ class OfflineFirstFormRepository @Inject constructor(
 
     override fun observeForm(): Flow<List<FormNode>> =
         formDao.observeForm().map { rows -> rows.toDomainTree() }
+
+    override fun observeImage(id: Long): Flow<ImageQuestion?> =
+        formDao.observeNode(id).map { it?.toImageQuestionOrNull() }
 
     override fun observeLastSyncedAt(): Flow<Instant?> =
         formDao.observeLastSyncedAt().map { millis -> millis?.let(Instant::ofEpochMilli) }

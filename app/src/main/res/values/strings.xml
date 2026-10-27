@@ -3,6 +3,9 @@
 
     <string name="retry">Retry</string>
     <string name="form_empty">This form has no items yet.</string>
+    <string name="open_image">Open image full screen</string>
+    <string name="back">Back</string>
+    <string name="image_not_found">This image is no longer part of the form.</string>
     <string name="unsupported_item">This item type (%1$s) isn’t supported in this version.</string>
 
     <string name="error_no_connection">You’re offline. Connect to the internet to load the form.</string>

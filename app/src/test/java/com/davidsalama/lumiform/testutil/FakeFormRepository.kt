@@ -3,10 +3,13 @@ package com.davidsalama.lumiform.testutil
 import com.davidsalama.lumiform.domain.FormRepository
 import com.davidsalama.lumiform.domain.RefreshResult
 import com.davidsalama.lumiform.domain.model.ChoiceQuestion
+import com.davidsalama.lumiform.domain.model.ContainerNode
 import com.davidsalama.lumiform.domain.model.FormNode
+import com.davidsalama.lumiform.domain.model.ImageQuestion
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import java.time.Instant
 
@@ -37,6 +40,17 @@ class FakeFormRepository(
     }
 
     override fun observeForm(): Flow<List<FormNode>> = form
+    override fun observeImage(id: Long): Flow<ImageQuestion?> =
+        form.map { nodes -> findImage(nodes, id) }
+
+    private fun findImage(nodes: List<FormNode>, id: Long): ImageQuestion? = nodes.firstNotNullOfOrNull { node ->
+        when (node) {
+            is ImageQuestion -> node.takeIf { it.id == id }
+            is ContainerNode -> findImage(node.children, id)
+            else -> null
+        }
+    }
+
     override fun observeLastSyncedAt(): Flow<Instant?> = lastSyncedAt
     override fun observeSelections(): Flow<Map<Long, Set<Long>>> = selections
 
