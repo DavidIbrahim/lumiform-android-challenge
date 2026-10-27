@@ -2,9 +2,7 @@ package com.davidsalama.lumiform.di
 
 import com.davidsalama.lumiform.data.remote.FormApi
 import com.davidsalama.lumiform.data.remote.FormRemoteDataSource
-import com.davidsalama.lumiform.data.network.AndroidConnectivityObserver
 import com.davidsalama.lumiform.data.remote.RetrofitFormRemoteDataSource
-import com.davidsalama.lumiform.domain.ConnectivityObserver
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -25,9 +23,6 @@ abstract class NetworkModule {
 
     @Binds
     abstract fun bindFormRemoteDataSource(impl: RetrofitFormRemoteDataSource): FormRemoteDataSource
-
-    @Binds
-    abstract fun bindConnectivityObserver(impl: AndroidConnectivityObserver): ConnectivityObserver
 
     companion object {
 

@@ -5,6 +5,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.davidsalama.lumiform.domain.DataError
+import com.davidsalama.lumiform.testutil.FakeImageLoaderRule
 import com.davidsalama.lumiform.testutil.sampleFormTree
 import com.davidsalama.lumiform.ui.theme.LumiformTheme
 import org.junit.Assert.assertEquals
@@ -16,7 +17,11 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class FormScreenTest {
 
-    @get:Rule
+    // The sample form has two images; without this Coil would try the real network.
+    @get:Rule(order = 0)
+    val imageLoaderRule = FakeImageLoaderRule()
+
+    @get:Rule(order = 1)
     val composeRule = createComposeRule()
 
     private var refreshes = 0
