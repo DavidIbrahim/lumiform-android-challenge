@@ -32,7 +32,7 @@ class ImageDetailViewModel @Inject constructor(
     repository: FormRepository,
 ) : ViewModel() {
 
-    private val imageId = savedStateHandle.toRoute<ImageDetailDestination>().imageId
+    val imageId: Long = savedStateHandle.toRoute<ImageDetailDestination>().imageId
 
     val uiState: StateFlow<ImageDetailUiState> = repository.observeImage(imageId)
         .map { image -> if (image == null) ImageDetailUiState.NotFound else ImageDetailUiState.Loaded(image) }

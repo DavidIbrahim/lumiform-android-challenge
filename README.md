@@ -51,7 +51,7 @@ The last command is what CI runs on every push and pull request.
 | Show the page → section → question hierarchy | The tree is flattened into one list of rows, each with a depth. Rows are indented, with one guide line per ancestor: orange for the page, green for sections. |
 | Font size follows the hierarchy | Page 28sp > section 22, 20, 18sp (smaller with each nesting level, never below 18sp) > question 16sp. Sizes come from the Material type scale, so they follow the user's font scale. |
 | Text questions | Shown on a card with their text. |
-| Image questions | A 160dp thumbnail. Tapping it opens a full-screen viewer with the title, pinch and double-tap zoom, and pan. |
+| Image questions | A 160dp thumbnail. Tapping it grows the thumbnail into a full-screen, immersive viewer (a shared-element transition) with the title as a caption. Tap to hide or show the controls; pinch or double-tap to zoom; swipe down to close. |
 | Choice questions | One chip per response, with its score. Single choice behaves like radio buttons, multiple choice like checkboxes. A status line shows how many are selected. Selections are saved in Room. |
 | Offline | Room is the single source of truth. The last form and its selections show with no connection, and images already seen come from Coil's disk cache. |
 | Bonus: poor connections | Timeouts, retry with backoff for transient errors, ETag revalidation, an offline banner over cached data, and an automatic retry when the connection comes back. |
@@ -95,7 +95,7 @@ com.davidsalama.lumiform
 │   └── OfflineFirstFormRepository, retryWithBackoff, error mapping
 ├── ui/
 │   ├── form/        FormViewModel, flattenForm(), FormScreen, one composable per row type
-│   ├── image/       Full-screen viewer, ZoomState
+│   ├── image/       Full-screen viewer, ZoomState, SwipeToDismiss
 │   ├── navigation/  Type-safe routes
 │   └── theme/       Colours, HierarchyTypography
 └── di/              Hilt modules
@@ -149,8 +149,13 @@ The gist sends `Cache-Control: max-age=300` and an `ETag`. The API request adds 
 ### Navigation passes ids, not data
 The image viewer gets only the image's id and reads the image from Room. It works offline and after process death, and the route never carries a URL.
 
+### Image viewer: immersive, and the thumbnail becomes the image
+The thumbnail and the viewer's image share a key in a `SharedTransitionLayout` around the `NavHost`, so the picture you tapped grows into place and shrinks back on close. The thumbnail's decoded bitmap is kept in Coil's memory cache under its own key, and the viewer shows it immediately while the full image loads, so the transition never lands on an empty frame.
+
+Gestures are decided once per touch, after the finger moves past touch slop: two fingers zoom and pan, and a mostly vertical one-finger drag of an unzoomed image is a swipe to close. That way swipe-to-close never fights with panning a zoomed image, and taps under the slop still reach the tap detector. The rules (`ZoomState`, `SwipeToDismiss`) are pure functions with their own tests.
+
 ### Fixed colour scheme
-Dynamic (wallpaper) colour is off, because the page and section colours carry meaning and must look the same on every device. The image viewer is always dark, like a photo viewer. Images sit on a light canvas, because the sample's iOS logo is black on a transparent background and would disappear on a dark surface.
+Dynamic (wallpaper) colour is off, because the page and section colours carry meaning and must look the same on every device. The image viewer is always dark, like a photo viewer, and hides the system bars along with its own controls. Images sit on a light canvas, because the sample's iOS logo is black on a transparent background and would disappear on a dark surface.
 
 ## Offline and error handling
 
@@ -169,7 +174,7 @@ Retries: up to 3 attempts, waiting 1 s and then 2 s, only for errors that may fi
 
 ## Testing
 
-**112 tests**, all on the JVM; Robolectric runs the Room and Compose tests without an emulator. CI runs them on every push.
+**119 tests**, all on the JVM; Robolectric runs the Room and Compose tests without an emulator. CI runs them on every push.
 
 | Layer | What's covered | How |
 |---|---|---|
@@ -178,9 +183,9 @@ Retries: up to 3 attempts, waiting 1 s and then 2 s, only for errors that may fi
 | Mappers | DTO → domain → entities → domain keeps order and nesting | Plain JUnit |
 | Database | The form reads back as the same tree; a refresh replaces everything or, on failure, rolls back; selections survive a refresh unless their response was removed or moved | In-memory Room |
 | Repository | Success writes the form; failure keeps the cache and returns a typed error; retries; selections | Real in-memory Room, fake network |
-| Logic | `flattenForm`, `toggle`, typography by depth, retry/backoff, error mapping, sync-time formatting, zoom maths | Pure functions |
+| Logic | `flattenForm`, `toggle`, typography by depth, retry/backoff, error mapping, sync-time formatting, zoom and swipe-to-close maths | Pure functions |
 | ViewModels | Loading → content, errors with and without a cache, toggles, auto-retry on reconnect | Turbine, fake repository, `MainDispatcherRule` |
-| UI | Banner vs full-screen error, chip roles and selection, image viewer states | Compose UI tests |
+| UI | Banner vs full-screen error, chip roles and selection, image viewer states and tap-to-toggle controls | Compose UI tests |
 | Whole app | Real activity, navigation, ViewModels and Hilt, with only the data layer swapped: open an image and come back; answers reach the repository | `@HiltAndroidTest` + `@TestInstallIn` |
 
 I use fakes rather than mocks. The network is faked because it is slow and unpredictable. SQLite is used for real, because an in-memory database is cheap, and a fake DAO would mean re-implementing the transaction and orphan-cleanup SQL, which would test the fake rather than the app. Coil is replaced with a fake image engine so UI tests never hit the network.

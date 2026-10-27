@@ -14,6 +14,8 @@ import androidx.compose.ui.unit.dp
 import com.davidsalama.lumiform.R
 import com.davidsalama.lumiform.ui.form.ImageRow
 import com.davidsalama.lumiform.ui.image.FormImage
+import com.davidsalama.lumiform.ui.image.thumbnailCacheKey
+import com.davidsalama.lumiform.ui.navigation.sharedImage
 import com.davidsalama.lumiform.ui.theme.HierarchyTypography
 
 private val ThumbnailSize = 160.dp
@@ -40,7 +42,9 @@ fun ImageQuestionRow(
                 // The title below already describes the image.
                 contentDescription = null,
                 contentPadding = 12.dp,
+                memoryCacheKey = thumbnailCacheKey(row.imageUrl),
                 modifier = Modifier
+                    .sharedImage(row.id)
                     .size(ThumbnailSize)
                     .clip(ThumbnailShape)
                     .border(1.dp, MaterialTheme.colorScheme.outlineVariant, ThumbnailShape),
