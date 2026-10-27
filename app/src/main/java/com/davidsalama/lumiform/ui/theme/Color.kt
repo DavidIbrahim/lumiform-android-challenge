@@ -2,10 +2,13 @@ package com.davidsalama.lumiform.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Orange for pages and green for sections, after the brief's sample screenshot.
+val PageOrangeDark = Color(0xFFE8875F)
+val SectionGreenDark = Color(0xFF7CC4A8)
+val SurfaceDark = Color(0xFF1E1F22)
+val SurfaceContainerDark = Color(0xFF2A2B2F)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val PageOrangeLight = Color(0xFFB4532C)
+val SectionGreenLight = Color(0xFF2B7A5F)
+val SurfaceLight = Color(0xFFFCFAF8)
+val SurfaceContainerLight = Color(0xFFF1EEEB)

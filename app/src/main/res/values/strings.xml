@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">Lumiform Forms</string>
+
+    <string name="retry">Retry</string>
+    <string name="form_empty">This form has no items yet.</string>
+    <string name="unsupported_item">This item type (%1$s) isn’t supported in this version.</string>
+
+    <string name="error_no_connection">You’re offline. Connect to the internet to load the form.</string>
+    <string name="error_timeout">The server took too long to respond.</string>
+    <string name="error_server">The server returned an error (%1$d).</string>
+    <string name="error_invalid_data">The form data couldn’t be read.</string>
+    <string name="error_unknown">Something went wrong.</string>
 </resources>
