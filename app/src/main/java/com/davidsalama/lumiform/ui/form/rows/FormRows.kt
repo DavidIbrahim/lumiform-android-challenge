@@ -33,8 +33,7 @@ fun FormRowItem(
         is SectionRow -> SectionHeader(row, typography, modifier)
         is TextRow -> TextQuestionRow(row, typography, modifier)
         is ImageRow -> ImageQuestionRow(row, typography, onImageClick, modifier)
-        // Placeholder until the choice row lands in its own commit.
-        is ChoiceRow -> QuestionText(row.depth, row.question.content, row.id, typography, modifier)
+        is ChoiceRow -> ChoiceQuestionRow(row, typography, onResponseTapped, modifier)
         is UnknownRow -> UnsupportedRow(row, typography, modifier)
     }
 }

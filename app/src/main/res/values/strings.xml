@@ -6,6 +6,16 @@
     <string name="open_image">Open image full screen</string>
     <string name="back">Back</string>
     <string name="image_not_found">This image is no longer part of the form.</string>
+    <string name="choice_none_selected">None selected</string>
+    <plurals name="choice_selected_count">
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
+    <string name="choice_single">single choice</string>
+    <string name="choice_multiple">multiple choice</string>
+    <string name="choice_status">%1$s · %2$s</string>
+    <string name="choice_no_options">No options to choose from.</string>
+    <string name="score_description">score %1$d</string>
     <string name="unsupported_item">This item type (%1$s) isn’t supported in this version.</string>
 
     <string name="error_no_connection">You’re offline. Connect to the internet to load the form.</string>
