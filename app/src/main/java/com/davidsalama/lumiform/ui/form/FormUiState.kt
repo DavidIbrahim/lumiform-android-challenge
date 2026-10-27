@@ -15,4 +15,7 @@ data class FormUiState(
 
     /** Nothing cached and the fetch failed: the error takes the whole screen. */
     val isBlockingError: Boolean get() = rows.isEmpty() && !isRefreshing && error != null
+
+    /** Cached data is shown but the last refresh failed: a banner says why and how old it is. */
+    val isShowingStaleData: Boolean get() = rows.isNotEmpty() && error != null
 }

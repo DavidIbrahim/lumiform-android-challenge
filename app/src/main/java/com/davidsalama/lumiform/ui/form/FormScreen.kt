@@ -74,15 +74,24 @@ fun FormScreen(
                 onRetry = onRefresh,
                 modifier = contentModifier,
             )
-            else -> PullToRefreshBox(
-                isRefreshing = state.isRefreshing,
-                onRefresh = onRefresh,
-                modifier = contentModifier,
-            ) {
-                if (state.rows.isEmpty()) {
-                    EmptyContent(Modifier.fillMaxSize())
-                } else {
-                    FormList(state.rows, onResponseTapped, onImageClick)
+            else -> Column(contentModifier) {
+                if (state.isShowingStaleData) {
+                    StaleDataBanner(
+                        error = checkNotNull(state.error),
+                        lastSyncedAt = state.lastSyncedAt,
+                        onRetry = onRefresh,
+                    )
+                }
+                PullToRefreshBox(
+                    isRefreshing = state.isRefreshing,
+                    onRefresh = onRefresh,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    if (state.rows.isEmpty()) {
+                        EmptyContent(Modifier.fillMaxSize())
+                    } else {
+                        FormList(state.rows, onResponseTapped, onImageClick)
+                    }
                 }
             }
         }

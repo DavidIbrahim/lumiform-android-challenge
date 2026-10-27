@@ -4,6 +4,8 @@ import com.davidsalama.lumiform.domain.DataError
 import kotlinx.serialization.SerializationException
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import retrofit2.HttpException
 import retrofit2.Response
@@ -43,5 +45,24 @@ class ErrorMapperTest {
     @Test
     fun `anything else maps to Unknown`() {
         assertEquals(DataError.Unknown, IllegalStateException().toDataError())
+    }
+
+    @Test
+    fun `connection problems, timeouts, 5xx, 408 and 429 are worth retrying`() {
+        val transient = listOf(
+            DataError.NoConnection,
+            DataError.Timeout,
+            DataError.Server(500),
+            DataError.Server(503),
+            DataError.Server(408),
+            DataError.Server(429),
+        )
+        transient.forEach { assertTrue("$it should be transient", it.isTransient()) }
+    }
+
+    @Test
+    fun `client errors and unreadable data are not retried`() {
+        val permanent = listOf(DataError.Server(404), DataError.Server(401), DataError.InvalidData, DataError.Unknown)
+        permanent.forEach { assertFalse("$it should not be transient", it.isTransient()) }
     }
 }

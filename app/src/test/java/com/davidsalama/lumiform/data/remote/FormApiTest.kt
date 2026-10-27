@@ -5,16 +5,22 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.SerializationException
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
+import okhttp3.Cache
 import okhttp3.OkHttpClient
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import retrofit2.HttpException
 
 /** Runs the production Retrofit + converter setup against a local server. */
 class FormApiTest {
+
+    @get:Rule
+    val tempFolder = TemporaryFolder()
 
     private val server = MockWebServer()
     private lateinit var api: FormApi
@@ -57,6 +63,35 @@ class FormApiTest {
 
         val path = server.takeRequest().url.encodedPath
         assertEquals("/aruana-lumiform/383e1291df3e0cc1d49aeb14d45f5b94/raw/lumiform-android-test.json", path)
+    }
+
+    @Test
+    fun `refresh revalidates with the ETag and an unchanged form costs only a 304`() = runTest {
+        val cachedApi = FormApi.create(
+            server.url("/"),
+            OkHttpClient.Builder().cache(Cache(tempFolder.newFolder("http"), 1024 * 1024)).build(),
+            FormApi.json,
+        )
+        server.enqueue(
+            MockResponse.Builder()
+                .code(200)
+                .addHeader("Content-Type", "text/plain; charset=utf-8")
+                .addHeader("Cache-Control", "max-age=300")
+                .addHeader("ETag", "\"v1\"")
+                .body(Fixtures.sampleForm)
+                .build(),
+        )
+        server.enqueue(MockResponse.Builder().code(304).build())
+
+        cachedApi.getForm()
+        val second = cachedApi.getForm()
+
+        server.takeRequest()
+        val revalidation = server.takeRequest()
+        // Despite the server's max-age=300 the second call still asked the server, with the ETag...
+        assertEquals("\"v1\"", revalidation.headers["If-None-Match"])
+        // ...and the 304 was answered from the cache.
+        assertEquals(listOf(1L, 10L), second.map { it.id })
     }
 
     @Test

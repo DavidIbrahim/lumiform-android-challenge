@@ -8,9 +8,18 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import retrofit2.http.GET
+import retrofit2.http.Headers
 
 interface FormApi {
 
+    /**
+     * `max-age=0` makes OkHttp treat its cached copy as stale, so it always asks the server, with
+     * the cached ETag. An unchanged form comes back as an empty 304 and OkHttp serves the cached
+     * body, which saves the download on a slow connection. Trusting the server's max-age=300
+     * instead would let an offline refresh look successful and record a false sync time.
+     * (`no-cache` doesn't work here: OkHttp then skips its cache entirely and sends no ETag.)
+     */
+    @Headers("Cache-Control: max-age=0")
     @GET("aruana-lumiform/383e1291df3e0cc1d49aeb14d45f5b94/raw/lumiform-android-test.json")
     suspend fun getForm(): List<NodeDto>
 

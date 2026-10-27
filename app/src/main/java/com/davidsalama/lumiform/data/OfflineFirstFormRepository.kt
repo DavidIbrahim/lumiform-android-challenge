@@ -47,7 +47,9 @@ class OfflineFirstFormRepository @Inject constructor(
         }
 
     override suspend fun refresh(): RefreshResult = try {
-        val entities = remote.fetchForm().toEntities()
+        // Only the network call is retried; a failed database write isn't a connection problem.
+        val form = retryWithBackoff(shouldRetry = { it.toDataError().isTransient() }) { remote.fetchForm() }
+        val entities = form.toEntities()
         formDao.replaceForm(entities.nodes, entities.responses, syncedAtMillis = clock.millis())
         RefreshResult.Success
     } catch (e: CancellationException) {

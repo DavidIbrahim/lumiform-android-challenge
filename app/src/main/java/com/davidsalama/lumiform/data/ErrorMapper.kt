@@ -15,3 +15,13 @@ fun Throwable.toDataError(): DataError = when (this) {
     is SerializationException -> DataError.InvalidData
     else -> DataError.Unknown
 }
+
+/**
+ * Worth retrying: the next attempt may succeed on its own. A 4xx (other than timeout and
+ * rate limit) or a body we can't parse will fail the same way every time.
+ */
+fun DataError.isTransient(): Boolean = when (this) {
+    DataError.NoConnection, DataError.Timeout -> true
+    is DataError.Server -> code >= 500 || code == 408 || code == 429
+    DataError.InvalidData, DataError.Unknown -> false
+}

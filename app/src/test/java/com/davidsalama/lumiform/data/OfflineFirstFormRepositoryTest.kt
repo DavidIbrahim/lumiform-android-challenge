@@ -17,6 +17,7 @@ import com.davidsalama.lumiform.testutil.sampleFormTree
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.SerializationException
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -108,6 +109,40 @@ class OfflineFirstFormRepositoryTest {
         assertEquals(RefreshResult.Failed(DataError.NoConnection), result)
         assertEquals(sampleFormTree, repository.observeForm().first())
         assertEquals(now, repository.observeLastSyncedAt().first())
+    }
+
+    @Test
+    fun `a dropped connection is retried and the refresh still succeeds`() = runTest {
+        var attempts = 0
+        remote.response = {
+            attempts++
+            if (attempts == 1) throw UnknownHostException() else sampleFormTree
+        }
+
+        val result = repository.refresh()
+
+        assertEquals(RefreshResult.Success, result)
+        assertEquals(2, remote.fetchCount)
+        assertEquals(sampleFormTree, repository.observeForm().first())
+    }
+
+    @Test
+    fun `offline gives up after three attempts`() = runTest {
+        remote.failWith(UnknownHostException())
+
+        repository.refresh()
+
+        assertEquals(3, remote.fetchCount)
+    }
+
+    @Test
+    fun `unreadable data is not retried`() = runTest {
+        remote.failWith(SerializationException("bad json"))
+
+        val result = repository.refresh()
+
+        assertEquals(RefreshResult.Failed(DataError.InvalidData), result)
+        assertEquals(1, remote.fetchCount)
     }
 
     @Test

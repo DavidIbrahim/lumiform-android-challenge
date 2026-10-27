@@ -4,6 +4,7 @@ import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.test
 import com.davidsalama.lumiform.domain.DataError
 import com.davidsalama.lumiform.domain.RefreshResult
+import com.davidsalama.lumiform.testutil.FakeConnectivityObserver
 import com.davidsalama.lumiform.testutil.FakeFormRepository
 import com.davidsalama.lumiform.testutil.MainDispatcherRule
 import com.davidsalama.lumiform.testutil.sampleFormTree
@@ -20,6 +21,9 @@ class FormViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val offline = RefreshResult.Failed(DataError.NoConnection)
+    private val connectivity = FakeConnectivityObserver(online = true)
+
+    private fun viewModel(repository: FakeFormRepository) = FormViewModel(repository, connectivity)
 
     /** Skips intermediate emissions until the state matches. */
     private suspend fun ReceiveTurbine<FormUiState>.awaitState(predicate: (FormUiState) -> Boolean): FormUiState {
@@ -32,7 +36,7 @@ class FormViewModelTest {
     @Test
     fun `first launch shows loading, then the fetched form`() = runTest {
         val repository = FakeFormRepository().apply { holdRefresh() }
-        val viewModel = FormViewModel(repository)
+        val viewModel = viewModel(repository)
 
         viewModel.uiState.test {
             assertTrue(awaitState { it.isInitialLoading }.isInitialLoading)
@@ -48,7 +52,7 @@ class FormViewModelTest {
     @Test
     fun `cached form shows immediately while the refresh is still running`() = runTest {
         val repository = FakeFormRepository(cachedForm = sampleFormTree).apply { holdRefresh() }
-        val viewModel = FormViewModel(repository)
+        val viewModel = viewModel(repository)
 
         viewModel.uiState.test {
             val state = awaitState { it.rows.isNotEmpty() }
@@ -60,7 +64,7 @@ class FormViewModelTest {
 
     @Test
     fun `failed first launch without cache is a blocking error`() = runTest {
-        val viewModel = FormViewModel(FakeFormRepository(refreshResult = offline))
+        val viewModel = viewModel(FakeFormRepository(refreshResult = offline))
 
         viewModel.uiState.test {
             val state = awaitState { !it.isRefreshing }
@@ -71,7 +75,7 @@ class FormViewModelTest {
 
     @Test
     fun `failed refresh with a cache keeps showing the cached form`() = runTest {
-        val viewModel = FormViewModel(FakeFormRepository(cachedForm = sampleFormTree, refreshResult = offline))
+        val viewModel = viewModel(FakeFormRepository(cachedForm = sampleFormTree, refreshResult = offline))
 
         viewModel.uiState.test {
             val state = awaitState { !it.isRefreshing }
@@ -84,7 +88,7 @@ class FormViewModelTest {
     @Test
     fun `retry after a failure loads the form and clears the error`() = runTest {
         val repository = FakeFormRepository(refreshResult = offline)
-        val viewModel = FormViewModel(repository)
+        val viewModel = viewModel(repository)
 
         viewModel.uiState.test {
             awaitState { it.isBlockingError }
@@ -101,7 +105,7 @@ class FormViewModelTest {
     @Test
     fun `refresh while one is running does not start another`() = runTest {
         val repository = FakeFormRepository().apply { holdRefresh() }
-        val viewModel = FormViewModel(repository)
+        val viewModel = viewModel(repository)
 
         viewModel.refresh()
         viewModel.refresh()
@@ -112,7 +116,7 @@ class FormViewModelTest {
 
     @Test
     fun `tapping a response updates that choice row`() = runTest {
-        val viewModel = FormViewModel(FakeFormRepository())
+        val viewModel = viewModel(FakeFormRepository())
 
         viewModel.uiState.test {
             val loaded = awaitState { it.rows.isNotEmpty() }
@@ -126,6 +130,45 @@ class FormViewModelTest {
             }
             val row = updated.rows.filterIsInstance<ChoiceRow>().single { it.id == 14L }
             assertEquals(setOf(1021L, 1023L), row.selectedIds)
+        }
+    }
+
+    @Test
+    fun `failed refresh is retried automatically when the connection comes back`() = runTest {
+        connectivity.isOnline.value = false
+        val repository = FakeFormRepository(refreshResult = offline)
+        val viewModel = viewModel(repository)
+
+        viewModel.uiState.test {
+            awaitState { it.isBlockingError }
+
+            repository.refreshResult = RefreshResult.Success
+            connectivity.isOnline.value = true
+
+            val state = awaitState { !it.isRefreshing && it.rows.isNotEmpty() }
+            assertEquals(null, state.error)
+            assertEquals(2, repository.refreshCount)
+        }
+    }
+
+    @Test
+    fun `coming online after a successful refresh does not refresh again`() = runTest {
+        connectivity.isOnline.value = false
+        val repository = FakeFormRepository()
+        viewModel(repository)
+
+        connectivity.isOnline.value = true
+
+        assertEquals(1, repository.refreshCount)
+    }
+
+    @Test
+    fun `failed refresh over a cache shows the stale data banner`() = runTest {
+        val viewModel = viewModel(FakeFormRepository(cachedForm = sampleFormTree, refreshResult = offline))
+
+        viewModel.uiState.test {
+            val state = awaitState { !it.isRefreshing }
+            assertTrue(state.isShowingStaleData)
         }
     }
 }
