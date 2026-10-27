@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Themed-icon version: the card is one shape with the rows cut out (evenOdd). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M38,28h32a5,5 0,0 1,5 5v42a5,5 0,0 1,-5 5h-32a5,5 0,0 1,-5 -5v-42a5,5 0,0 1,5 -5z
+            M41,38h26a2,2 0,0 1,0 4h-26a2,2 0,0 1,0 -4z
+            M42.5,46h4a1.5,1.5 0,0 1,1.5 1.5v4a1.5,1.5 0,0 1,-1.5 1.5h-4a1.5,1.5 0,0 1,-1.5 -1.5v-4a1.5,1.5 0,0 1,1.5 -1.5z
+            M51.25,48.25h14.5a1.25,1.25 0,0 1,0 2.5h-14.5a1.25,1.25 0,0 1,0 -2.5z
+            M46.5,57h4a1.5,1.5 0,0 1,1.5 1.5v4a1.5,1.5 0,0 1,-1.5 1.5h-4a1.5,1.5 0,0 1,-1.5 -1.5v-4a1.5,1.5 0,0 1,1.5 -1.5z
+            M55.25,59.25h10.5a1.25,1.25 0,0 1,0 2.5h-10.5a1.25,1.25 0,0 1,0 -2.5z
+            M46.5,68h4a1.5,1.5 0,0 1,1.5 1.5v4a1.5,1.5 0,0 1,-1.5 1.5h-4a1.5,1.5 0,0 1,-1.5 -1.5v-4a1.5,1.5 0,0 1,1.5 -1.5z
+            M55.25,70.25h10.5a1.25,1.25 0,0 1,0 2.5h-10.5a1.25,1.25 0,0 1,0 -2.5z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M48.5,24h11a2.5,2.5 0,0 1,2.5 2.5v4a2.5,2.5 0,0 1,-2.5 2.5h-11a2.5,2.5 0,0 1,-2.5 -2.5v-4a2.5,2.5 0,0 1,2.5 -2.5z" />
+</vector>
