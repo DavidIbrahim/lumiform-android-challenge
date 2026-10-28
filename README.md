@@ -174,7 +174,7 @@ Retries: up to 3 attempts, waiting 1 s and then 2 s, only for errors that may fi
 
 ## Testing
 
-**126 tests**, all on the JVM; Robolectric runs the Room and Compose tests without an emulator. CI runs them on every push.
+**137 tests**, all on the JVM; Robolectric runs the Room and Compose tests without an emulator. CI runs them on every push.
 
 | Layer | What's covered | How |
 |---|---|---|
@@ -184,10 +184,12 @@ Retries: up to 3 attempts, waiting 1 s and then 2 s, only for errors that may fi
 | Database | The form reads back as the same tree; a refresh replaces everything or, on failure, rolls back; selections survive a refresh unless their response was removed or moved | In-memory Room |
 | Repository | Success writes the form; failure keeps the cache and returns a typed error; retries; selections | Real in-memory Room, fake network |
 | Bad network, end to end | A server that goes silent, a download that trickles, a connection that drops mid-body, a 503 that recovers, a 404, an unreachable host: each gives the right result, retries only when it should, and keeps the cached form | MockWebServer → production OkHttp and Retrofit setup → repository → in-memory Room |
+| Connectivity | The real observer starts online or offline correctly, ignores a network behind a login page, follows validation and loss, and unregisters when nobody listens | Robolectric's `ConnectivityManager` |
 | Logic | `flattenForm`, `toggle`, typography by depth, retry/backoff, error mapping, sync-time formatting, zoom and swipe-to-close maths | Pure functions |
 | ViewModels | Loading → content, errors with and without a cache, toggles, auto-retry on reconnect | Turbine, fake repository, `MainDispatcherRule` |
 | UI | Banner vs full-screen error, chip roles and selection, image viewer states and tap-to-toggle controls | Compose UI tests |
-| Whole app | Real activity, navigation, ViewModels and Hilt, with only the data layer swapped: open an image and come back; answers reach the repository | `@HiltAndroidTest` + `@TestInstallIn` |
+| Whole app, fake data | Real activity, navigation, ViewModels and Hilt, with only the data layer swapped: open an image and come back; answers reach the repository | `@HiltAndroidTest` + `@UninstallModules` |
+| Whole app, real data | Screen to database with only the server faked: first launch downloads and shows the form; answers are saved and survive rotation and reopening the app; reopening with the server down shows the cache, the answers and the offline banner; no cache shows the full-screen error and Try again recovers; the form loads by itself when the connection returns; rotating keeps the open image | `@HiltAndroidTest`, MockWebServer, in-memory Room |
 
 I use fakes rather than mocks. The network is faked because it is slow and unpredictable. SQLite is used for real, because an in-memory database is cheap, and a fake DAO would mean re-implementing the transaction and orphan-cleanup SQL, which would test the fake rather than the app. Coil is replaced with a fake image engine so UI tests never hit the network.
 
