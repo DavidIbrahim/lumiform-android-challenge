@@ -54,7 +54,7 @@ The last command is what CI runs on every push and pull request.
 | Image questions | A 160dp thumbnail. Tapping it grows the thumbnail into a full-screen, immersive viewer (a shared-element transition) with the title as a caption. Tap to hide or show the controls; pinch or double-tap to zoom; swipe down to close. |
 | Choice questions | One chip per response, with its score. Single choice behaves like radio buttons, multiple choice like checkboxes. A status line shows how many are selected. Selections are saved in Room. |
 | Offline | Room is the single source of truth. The last form and its selections show with no connection, and images already seen come from Coil's disk cache. |
-| Bonus: poor connections | Timeouts, retry with backoff for transient errors, ETag revalidation, an offline banner over cached data, and an automatic retry when the connection comes back. |
+| Bonus: poor connections | Connect, read and whole-request timeouts, retry with backoff for transient errors, ETag revalidation, an offline banner over cached data, and an automatic retry when the connection comes back. |
 
 Each item also shows its `#id`, as in the brief's sample screenshot. Item types the app doesn't know yet appear as "not supported" instead of crashing.
 
@@ -162,7 +162,7 @@ Dynamic (wallpaper) colour is off, because the page and section colours carry me
 | Situation | What the user sees |
 |---|---|
 | First launch, loading | Full-screen progress |
-| First launch, request fails, nothing cached | Full-screen message for that error (offline, timeout, server error, invalid data) with **Retry** |
+| First launch, request fails, nothing cached | A full-screen state for that error (offline, timeout, server error, invalid data): a small animated illustration drawn in Compose (Wi-Fi arcs searching for a signal when offline), a headline, what to do, and **Try again**. Offline, it also says the form will load by itself once the connection is back, which it does. |
 | Cached form, refresh fails | The form stays usable, with a banner such as "You're offline · Showing data from 10:42" and **Retry**. Screen readers announce it politely. |
 | Cached form, refreshing | Content stays; pull-to-refresh indicator; the top bar says "Syncing…" |
 | Connection comes back | The app refreshes automatically, but only on an offline → online change, not when it starts |
