@@ -74,9 +74,18 @@ class FormScreenTest {
     fun `failure without cache takes the whole screen with a retry`() {
         show(FormUiState(error = DataError.Timeout))
 
+        composeRule.onNodeWithText("Connection is slow").assertExists()
         composeRule.onNodeWithText("The server took too long to respond.").assertExists()
         composeRule.onNodeWithText("Main Page").assertDoesNotExist()
-        composeRule.onNodeWithText("Retry").performClick()
+        composeRule.onNodeWithText("Try again").performClick()
         assertEquals(1, refreshes)
+    }
+
+    @Test
+    fun `offline without cache says so and that it will load by itself`() {
+        show(FormUiState(error = DataError.NoConnection))
+
+        composeRule.onNodeWithText("You’re offline").assertExists()
+        composeRule.onNodeWithText("back online", substring = true).assertExists()
     }
 }

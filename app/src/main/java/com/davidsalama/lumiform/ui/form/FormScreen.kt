@@ -1,16 +1,31 @@
 package com.davidsalama.lumiform.ui.form
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -25,6 +40,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -166,19 +185,48 @@ private fun FormList(
     }
 }
 
+/** Nothing cached and the fetch failed: an animated picture, what happened, and a way to retry. */
 @Composable
 private fun ErrorContent(error: DataError, onRetry: () -> Unit, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.padding(32.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = error.message(),
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-        )
-        Button(onClick = onRetry) { Text(stringResource(R.string.retry)) }
+    // Starts hidden and immediately targets visible, so the content eases in once.
+    val appear = remember { MutableTransitionState(false).apply { targetState = true } }
+    Box(modifier.verticalScroll(rememberScrollState()), contentAlignment = Alignment.Center) {
+        AnimatedVisibility(
+            visibleState = appear,
+            enter = fadeIn() + slideInVertically { it / 10 },
+        ) {
+            Column(
+                modifier = Modifier
+                    .widthIn(max = 420.dp)
+                    .padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                ErrorIllustration(error)
+                Spacer(Modifier.height(24.dp))
+                Text(
+                    text = error.title(),
+                    style = MaterialTheme.typography.headlineSmall,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.semantics {
+                        heading()
+                        liveRegion = LiveRegionMode.Polite
+                    },
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = error.message(),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(32.dp))
+                Button(onClick = onRetry, contentPadding = ButtonDefaults.ButtonWithIconContentPadding) {
+                    Icon(Icons.Rounded.Refresh, contentDescription = null, Modifier.size(ButtonDefaults.IconSize))
+                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                    Text(stringResource(R.string.try_again))
+                }
+            }
+        }
     }
 }
 
@@ -190,12 +238,35 @@ private fun EmptyContent(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun DataError.message(): String = when (this) {
+private fun DataError.title(): String = when (this) {
+    DataError.NoConnection -> stringResource(R.string.error_title_no_connection)
+    DataError.Timeout -> stringResource(R.string.error_title_timeout)
+    is DataError.Server -> stringResource(R.string.error_title_server)
+    DataError.InvalidData -> stringResource(R.string.error_title_invalid_data)
+    DataError.Unknown -> stringResource(R.string.error_title_unknown)
+}
+
+@Composable
+private fun DataError.message(): String = when (this) {
     DataError.NoConnection -> stringResource(R.string.error_no_connection)
     DataError.Timeout -> stringResource(R.string.error_timeout)
     is DataError.Server -> stringResource(R.string.error_server, code)
     DataError.InvalidData -> stringResource(R.string.error_invalid_data)
     DataError.Unknown -> stringResource(R.string.error_unknown)
+}
+
+@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun OfflineErrorPreview() {
+    LumiformTheme {
+        FormScreen(
+            state = FormUiState(error = DataError.NoConnection),
+            onRefresh = {},
+            onResponseTapped = { _, _ -> },
+            onImageClick = {},
+        )
+    }
 }
 
 @Preview(showBackground = true)

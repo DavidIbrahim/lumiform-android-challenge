@@ -20,11 +20,17 @@
     <string name="score_description">score %1$d</string>
     <string name="unsupported_item">This item type (%1$s) isn’t supported in this version.</string>
 
-    <string name="error_no_connection">You’re offline. Connect to the internet to load the form.</string>
+    <string name="try_again">Try again</string>
+    <string name="error_title_no_connection">You’re offline</string>
+    <string name="error_title_timeout">Connection is slow</string>
+    <string name="error_title_server">Server problem</string>
+    <string name="error_title_invalid_data">Couldn’t read the form</string>
+    <string name="error_title_unknown">Something went wrong</string>
+    <string name="error_no_connection">Check your Wi-Fi or mobile data. The form loads by itself once you’re back online.</string>
     <string name="error_timeout">The server took too long to respond.</string>
-    <string name="error_server">The server returned an error (%1$d).</string>
+    <string name="error_server">The server returned an error (%1$d). Please try again in a moment.</string>
     <string name="error_invalid_data">The form data couldn’t be read.</string>
-    <string name="error_unknown">Something went wrong.</string>
+    <string name="error_unknown">Please try again in a moment.</string>
 
     <string name="syncing">Syncing…</string>
     <string name="synced_at">Synced %1$s</string>
