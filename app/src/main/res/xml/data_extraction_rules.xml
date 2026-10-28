@@ -1,19 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample data extraction rules file; uncomment and customize as necessary.
-   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
-   for details.
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Android 12+. Only the Room database is backed up: it holds the user's answers, which exist
+   nowhere else. The cached form in it is small, and the next refresh replaces it anyway.
+   HTTP and image caches live in cacheDir, which is never backed up.
+   path="." also covers the -wal and -shm files, so the restored database stays consistent.
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <include domain="database" path="." />
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <include domain="database" path="." />
     </device-transfer>
-    -->
 </data-extraction-rules>
