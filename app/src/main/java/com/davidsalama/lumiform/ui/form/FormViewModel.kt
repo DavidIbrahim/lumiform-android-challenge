@@ -15,14 +15,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.Clock
+import java.time.Duration
 import javax.inject.Inject
 
 @HiltViewModel
 class FormViewModel @Inject constructor(
     private val repository: FormRepository,
     private val connectivity: ConnectivityObserver,
+    private val clock: Clock,
 ) : ViewModel() {
 
     private data class RefreshState(val isRefreshing: Boolean, val error: DataError?)
@@ -71,12 +75,33 @@ class FormViewModel @Inject constructor(
         if (refreshJob?.isActive == true) return
         refreshJob = viewModelScope.launch {
             refreshState.value = refreshState.value.copy(isRefreshing = true)
-            val error = (repository.refresh() as? RefreshResult.Failed)?.error
+            val error: DataError? = (repository.refresh() as? RefreshResult.Failed)?.error
             refreshState.value = RefreshState(isRefreshing = false, error = error)
+        }
+    }
+
+    /**
+     * Called each time the screen comes to the foreground. The ViewModel outlives a trip to the
+     * background, so `init` doesn't run again; this refreshes only if the cache is older than
+     * [STALE_AFTER], so quick app switches cost nothing. On first start the refresh from `init`
+     * is still running, and [refresh] ignores the duplicate.
+     */
+    fun onScreenStarted() {
+        viewModelScope.launch {
+            // Read from the database, not uiState: its upstream is stopped while in the background.
+            val lastSyncedAt = repository.observeLastSyncedAt().first()
+            if (lastSyncedAt == null || Duration.between(lastSyncedAt, clock.instant()) >= STALE_AFTER) {
+                refresh()
+            }
         }
     }
 
     fun onResponseTapped(question: ChoiceQuestion, responseId: Long) {
         viewModelScope.launch { repository.toggleResponse(question, responseId) }
+    }
+
+    companion object {
+        /** How old the cache may get before coming back to the screen triggers a refresh. */
+        val STALE_AFTER: Duration = Duration.ofMinutes(5)
     }
 }

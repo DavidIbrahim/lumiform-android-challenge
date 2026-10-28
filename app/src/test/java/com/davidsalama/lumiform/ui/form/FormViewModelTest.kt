@@ -14,6 +14,9 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 
 class FormViewModelTest {
 
@@ -23,7 +26,10 @@ class FormViewModelTest {
     private val offline = RefreshResult.Failed(DataError.NoConnection)
     private val connectivity = FakeConnectivityObserver(online = true)
 
-    private fun viewModel(repository: FakeFormRepository) = FormViewModel(repository, connectivity)
+    private val now = Instant.parse("2026-10-28T10:00:00Z")
+
+    private fun viewModel(repository: FakeFormRepository) =
+        FormViewModel(repository, connectivity, Clock.fixed(now, ZoneOffset.UTC))
 
     /** Skips intermediate emissions until the state matches. */
     private suspend fun ReceiveTurbine<FormUiState>.awaitState(predicate: (FormUiState) -> Boolean): FormUiState {
@@ -170,5 +176,38 @@ class FormViewModelTest {
             val state = awaitState { !it.isRefreshing }
             assertTrue(state.isShowingStaleData)
         }
+    }
+
+    @Test
+    fun `returning to the screen with a fresh cache does not refresh`() = runTest {
+        val repository = FakeFormRepository(cachedForm = sampleFormTree)
+        repository.lastSyncedAt.value = now.minus(FormViewModel.STALE_AFTER).plusSeconds(1)
+        val viewModel = viewModel(repository)
+
+        viewModel.onScreenStarted()
+
+        assertEquals(1, repository.refreshCount)
+    }
+
+    @Test
+    fun `returning to the screen with a stale cache refreshes`() = runTest {
+        val repository = FakeFormRepository(cachedForm = sampleFormTree)
+        repository.lastSyncedAt.value = now.minus(FormViewModel.STALE_AFTER)
+        val viewModel = viewModel(repository)
+
+        viewModel.onScreenStarted()
+
+        assertEquals(2, repository.refreshCount)
+    }
+
+    @Test
+    fun `starting the screen during the first refresh does not start another`() = runTest {
+        val repository = FakeFormRepository().apply { holdRefresh() }
+        val viewModel = viewModel(repository)
+
+        viewModel.onScreenStarted()
+        repository.releaseRefresh()
+
+        assertEquals(1, repository.refreshCount)
     }
 }
