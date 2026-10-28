@@ -170,11 +170,11 @@ Dynamic (wallpaper) colour is off, because the page and section colours carry me
 | Unknown item type | A "not supported" row; the rest of the form renders |
 | Image fails to load | A broken-image placeholder |
 
-Retries: up to 3 attempts, waiting 1 s and then 2 s, only for errors that may fix themselves (no connection, timeout, 5xx, 408, 429). A 404 or a body that can't be parsed fails immediately. Cancellation is never swallowed. Timeouts are 10 s to connect and 15 s to read.
+Retries: up to 3 attempts, waiting 1 s and then 2 s, only for errors that may fix themselves (no connection, timeout, 5xx, 408, 429). A 404 or a body that can't be parsed fails immediately. Cancellation is never swallowed. Timeouts are 10 s to connect and 15 s per read, plus 30 s for the whole form request: a connection that trickles a few bytes at a time never trips the read timeout, so without that limit the form could stay loading forever.
 
 ## Testing
 
-**119 tests**, all on the JVM; Robolectric runs the Room and Compose tests without an emulator. CI runs them on every push.
+**126 tests**, all on the JVM; Robolectric runs the Room and Compose tests without an emulator. CI runs them on every push.
 
 | Layer | What's covered | How |
 |---|---|---|
@@ -183,6 +183,7 @@ Retries: up to 3 attempts, waiting 1 s and then 2 s, only for errors that may fi
 | Mappers | DTO → domain → entities → domain keeps order and nesting | Plain JUnit |
 | Database | The form reads back as the same tree; a refresh replaces everything or, on failure, rolls back; selections survive a refresh unless their response was removed or moved | In-memory Room |
 | Repository | Success writes the form; failure keeps the cache and returns a typed error; retries; selections | Real in-memory Room, fake network |
+| Bad network, end to end | A server that goes silent, a download that trickles, a connection that drops mid-body, a 503 that recovers, a 404, an unreachable host: each gives the right result, retries only when it should, and keeps the cached form | MockWebServer → production OkHttp and Retrofit setup → repository → in-memory Room |
 | Logic | `flattenForm`, `toggle`, typography by depth, retry/backoff, error mapping, sync-time formatting, zoom and swipe-to-close maths | Pure functions |
 | ViewModels | Loading → content, errors with and without a cache, toggles, auto-retry on reconnect | Turbine, fake repository, `MainDispatcherRule` |
 | UI | Banner vs full-screen error, chip roles and selection, image viewer states and tap-to-toggle controls | Compose UI tests |

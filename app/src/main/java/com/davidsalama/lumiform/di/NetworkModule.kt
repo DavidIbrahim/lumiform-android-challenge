@@ -3,6 +3,8 @@ package com.davidsalama.lumiform.di
 import com.davidsalama.lumiform.data.remote.FormApi
 import com.davidsalama.lumiform.data.remote.FormRemoteDataSource
 import com.davidsalama.lumiform.data.remote.RetrofitFormRemoteDataSource
+import com.davidsalama.lumiform.data.remote.formApiHttpClient
+import com.davidsalama.lumiform.data.remote.sharedHttpClient
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -14,7 +16,6 @@ import okhttp3.Cache
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import java.io.File
-import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module
@@ -28,10 +29,7 @@ abstract class NetworkModule {
 
         @Provides
         @Singleton
-        fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
-            .connectTimeout(10, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
-            .build()
+        fun provideOkHttpClient(): OkHttpClient = sharedHttpClient()
 
         /**
          * The API gets its own HTTP cache (for ETag revalidation) on top of the shared client, so
@@ -40,10 +38,8 @@ abstract class NetworkModule {
         @Provides
         @Singleton
         fun provideFormApi(client: OkHttpClient, @ApplicationContext context: Context): FormApi {
-            val apiClient = client.newBuilder()
-                .cache(Cache(File(context.cacheDir, "http_api"), maxSize = 5L * 1024 * 1024))
-                .build()
-            return FormApi.create(FormApi.BASE_URL.toHttpUrl(), apiClient, FormApi.json)
+            val cache = Cache(File(context.cacheDir, "http_api"), maxSize = 5L * 1024 * 1024)
+            return FormApi.create(FormApi.BASE_URL.toHttpUrl(), formApiHttpClient(client, cache), FormApi.json)
         }
     }
 }
