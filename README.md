@@ -24,7 +24,7 @@ Built with Kotlin, Jetpack Compose, Material 3, Hilt, Retrofit, OkHttp, kotlinx.
 ## Running it
 
 You need:
-- **Android Studio** recent enough for AGP 9.4.
+- **Android Studio** recent enough for AGP 9.2.
 - **JDK 17 or newer** to start Gradle. Gradle downloads JDK 21 for its own daemon if you don't have it (`gradle/gradle-daemon-jvm.properties`).
 - **Android SDK platform 37**, the compileSdk. Android Studio offers to install it; on the command line, run `sdkmanager "platforms;android-37.0"`.
 
